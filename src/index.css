@@ -1,0 +1,49 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  
+  --color-neon-purple: #9d4edd;
+  --color-neon-blue: #00b4d8;
+  --color-glass: rgba(255, 255, 255, 0.05);
+  --color-glass-dark: rgba(0, 0, 0, 0.2);
+}
+
+@layer base {
+  body {
+    @apply antialiased font-sans transition-colors duration-300;
+  }
+}
+
+.glass {
+  @apply backdrop-blur-md bg-[var(--color-glass)] border border-white/10;
+}
+
+.glass-dark {
+  @apply backdrop-blur-md bg-[var(--color-glass-dark)] border border-black/10;
+}
+
+.neon-border {
+  @apply border border-transparent shadow-[0_0_15px_rgba(157,78,221,0.2)] hover:shadow-[0_0_20px_rgba(157,78,221,0.4)] transition-all;
+}
+
+.chat-bubble-user {
+  @apply bg-gradient-to-br from-neon-purple to-neon-blue text-white rounded-2xl rounded-tr-none shadow-lg px-4 py-2 max-w-[80%] self-end;
+}
+
+.chat-bubble-agent {
+  @apply bg-white/10 dark:bg-black/20 backdrop-blur-md border border-white/10 rounded-2xl rounded-tl-none px-4 py-2 max-w-[80%] self-start;
+}
+
+/* Scrollbar styles */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-white/10 rounded-full hover:bg-white/20 transition-colors;
+}

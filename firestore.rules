@@ -1,0 +1,87 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Validation Handlers ---
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'createdAt']) &&
+             data.uid == request.auth.uid &&
+             data.email is string && data.email.size() <= 256 &&
+             (data.createdAt == request.time || (resource != null && data.createdAt == existing().createdAt));
+    }
+
+    function isValidChat(data) {
+      return data.keys().hasAll(['title', 'userId', 'createdAt', 'lastMessageAt']) &&
+             data.title is string && data.title.size() <= 500 &&
+             data.userId == request.auth.uid &&
+             (data.createdAt == request.time || (resource != null && data.createdAt == existing().createdAt));
+    }
+
+    function isValidMessage(data) {
+      return data.keys().hasAll(['chatId', 'role', 'content', 'createdAt']) &&
+             data.chatId is string && data.chatId.size() <= 128 &&
+             data.role in ['user', 'assistant'] &&
+             data.content is string && data.content.size() <= 10000 &&
+             (data.createdAt == request.time || (resource != null && data.createdAt == existing().createdAt));
+    }
+
+    function isVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    // --- Matches ---
+
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(incoming());
+      allow update: if isOwner(userId) && isValidUser(incoming()) &&
+                      (incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'email', 'createdAt', 'uid'])) &&
+                      incoming().uid == existing().uid;
+    }
+
+    match /chats/{chatId} {
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid && isValidId(chatId);
+      allow create: if isVerified() && isValidChat(incoming()) && incoming().userId == request.auth.uid && isValidId(chatId);
+      allow update: if isVerified() && resource.data.userId == request.auth.uid && isValidId(chatId) &&
+                      isValidChat(incoming()) &&
+                      (incoming().diff(existing()).affectedKeys().hasOnly(['title', 'lastMessageAt'])) &&
+                      incoming().userId == existing().userId &&
+                      incoming().createdAt == existing().createdAt;
+      allow delete: if isVerified() && resource.data.userId == request.auth.uid && isValidId(chatId);
+
+      match /messages/{messageId} {
+        allow list: if isSignedIn() && get(/databases/$(database)/documents/chats/$(chatId)).data.userId == request.auth.uid;
+        allow create: if isVerified() && isValidMessage(incoming()) && isValidId(messageId) &&
+                        get(/databases/$(database)/documents/chats/$(chatId)).data.userId == request.auth.uid;
+        allow read: if isSignedIn() && get(/databases/$(database)/documents/chats/$(chatId)).data.userId == request.auth.uid && isValidId(messageId);
+      }
+    }
+  }
+}
