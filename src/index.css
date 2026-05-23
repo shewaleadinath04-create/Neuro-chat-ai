@@ -5,10 +5,10 @@
   --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
   
-  --color-neon-purple: #9d4edd;
-  --color-neon-blue: #00b4d8;
-  --color-glass: rgba(255, 255, 255, 0.05);
-  --color-glass-dark: rgba(0, 0, 0, 0.2);
+  --color-neon-purple: #7B61FF;
+  --color-neon-blue: #4DA8FF;
+  --color-glass: rgba(255, 255, 255, 0.06);
+  --color-glass-dark: rgba(10, 10, 10, 0.6);
 }
 
 @layer base {

@@ -6,6 +6,7 @@ import { LogIn, MessageSquare, Plus, Settings as SettingsIcon, LogOut, Moon, Sun
 import { auth, db, signInWithGoogle, handleFirestoreError, OperationType } from './lib/firebase';
 import { Chat, Message as MessageType, MessageRole, Theme } from './types';
 import Sidebar from './components/Sidebar';
+import AuthScreen from './components/AuthScreen';
 import ChatWindow from './components/ChatWindow';
 import Settings from './components/Settings';
 import { clsx, type ClassValue } from 'clsx';
@@ -95,55 +96,27 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-          className="text-neon-purple"
-        >
-          <BrainCircuit size={48} />
-        </motion.div>
+      <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center p-4">
+        <div className="relative">
+          <div className="absolute inset-[-20px] bg-[#7B61FF]/10 blur-[40px] rounded-full animate-pulse" />
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            className="text-[#7B61FF] relative z-10"
+          >
+            <BrainCircuit size={64} />
+          </motion.div>
+        </div>
       </div>
     );
   }
 
   if (!user) {
-    return (
-      <div className="min-h-screen bg-[#0f172a] text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
-        {/* Background blobs */}
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-neon-purple/20 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-neon-blue/20 blur-[120px] rounded-full" />
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="glass p-8 rounded-3xl max-w-md w-full text-center z-10"
-        >
-          <div className="mb-6 flex justify-center">
-            <div className="p-4 bg-gradient-to-br from-neon-purple to-neon-blue rounded-2xl shadow-xl">
-              <BrainCircuit size={48} />
-            </div>
-          </div>
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-neon-purple to-neon-blue bg-clip-text text-transparent">
-            NeuroChat
-          </h1>
-          <p className="text-slate-400 mb-8">
-            Experience the next generation of artificial intelligence with a sleek, futuristic interface.
-          </p>
-          <button
-            onClick={signInWithGoogle}
-            className="w-full flex items-center justify-center gap-3 bg-white text-black font-semibold py-3 px-6 rounded-xl hover:bg-slate-200 transition-colors shadow-lg"
-          >
-            <LogIn size={20} />
-            Sign in with Google
-          </button>
-        </motion.div>
-      </div>
-    );
+    return <AuthScreen />;
   }
 
   return (
-    <div className={cn("min-h-screen flex text-slate-100 font-sans", theme === Theme.DARK ? "bg-[#0f172a] dark" : "bg-slate-50 text-slate-900")}>
+    <div className={cn("min-h-screen flex text-slate-100 font-sans", theme === Theme.DARK ? "bg-[#0A0A0A] dark" : "bg-slate-50 text-slate-900")}>
       {/* Mobile Sidebar Toggle */}
       <button
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -173,9 +146,12 @@ export default function App() {
         {/* Header */}
         <header className="h-16 flex items-center justify-between px-6 glass border-b border-white/5 z-10">
           <div className="flex items-center gap-2">
-            <span className="lg:hidden font-bold text-xl ml-8">NeuroChat</span>
-            <span className="hidden lg:block font-medium text-slate-400">
-              {showSettings ? 'Settings' : (activeChatId ? chats.find(c => c.id === activeChatId)?.title : 'Select a chat')}
+            <div className="lg:hidden p-1.5 bg-gradient-to-br from-neon-purple to-neon-blue rounded-lg ml-10">
+              <BrainCircuit size={18} className="text-white" />
+            </div>
+            <span className="lg:hidden font-bold text-xl bg-gradient-to-r from-neon-purple to-neon-blue bg-clip-text text-transparent">Neuro AI</span>
+            <span className="hidden lg:block font-bold text-slate-100 tracking-tight">
+              {showSettings ? 'Settings' : (activeChatId ? chats.find(c => c.id === activeChatId)?.title : 'Select a conversation')}
             </span>
           </div>
           <div className="flex items-center gap-4">

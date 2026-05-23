@@ -6,8 +6,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { Message as MessageType, MessageRole } from '../types';
 import Message from './Message';
-import { ai, MODELS } from '../lib/gemini';
-import { GenerateContentResponse } from '@google/genai';
+
+
 
 interface ChatWindowProps {
   chatId: string;
@@ -134,59 +134,63 @@ export default function ChatWindow({ chatId, user }: ChatWindowProps) {
 
         if (isExplicitGenerate || generationMatch) {
           const prompt = generationMatch ? generationMatch[1] : messageContent.replace('/generate', '').trim() || "A creative futuristic image";
-          const response = await ai.models.generateContent({
-            model: MODELS.IMAGE,
-            contents: [{
-              role: 'user',
-              parts: [{ text: prompt }]
-            }],
-            config: {
-              imageConfig: {
-                aspectRatio: "1:1"
-              }
-            }
+          
+          const response = await fetch("/api/generate-image", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompt }),
           });
 
-          if (response.candidates && response.candidates.length > 0) {
-            for (const part of response.candidates[0].content.parts) {
-              if (part.inlineData) {
-                const rawBase64 = `data:image/png;base64,${part.inlineData.data}`;
-                botResponseImage = await compressImage(rawBase64);
-              } else if (part.text) {
-                botResponseText += part.text;
-              }
-            }
+          if (!response.ok) {
+            throw new Error(await response.text());
           }
+
+          const data = await response.json();
+          botResponseImage = data.image ? await compressImage(data.image) : null;
+          botResponseText = data.text;
+
           if (!botResponseText && !botResponseImage) botResponseText = `Generated image for: "${prompt}"`;
           else if (!botResponseText) botResponseText = `Generated image for: "${prompt}"`;
-        } else if (imageToUpload) {
-          // Multimodal prompt
-          const imageData = imageToUpload.split(',')[1];
-          const response = await ai.models.generateContent({
-            model: MODELS.FLASH,
-            contents: [{
-              role: "user",
-              parts: [
-                { text: messageContent || "Analyze this image" },
-                { inlineData: { data: imageData, mimeType: "image/jpeg" } }
-              ]
-            }]
-          });
-          botResponseText = response.text || "I'm sorry, I couldn't generate a response.";
         } else {
-          const history = messages.map(msg => ({
-            role: msg.role === MessageRole.USER ? 'user' : 'model' as any,
-            parts: [{ text: msg.content }]
-          }));
-          
-          const response = await ai.models.generateContent({
-            model: MODELS.FLASH,
-            contents: [
-              ...history,
-              { role: "user", parts: [{ text: messageContent }] }
-            ]
+          const history = messages.map(msg => {
+            const parts: any[] = [];
+            if (msg.content) parts.push({ text: msg.content });
+            if (msg.image && msg.image.startsWith('data:')) {
+              const mimeType = msg.image.split(';')[0].split(':')[1];
+              const data = msg.image.split(',')[1];
+              parts.push({ inlineData: { mimeType, data } });
+            }
+            if (parts.length === 0) parts.push({ text: " " });
+            
+            return {
+              role: msg.role === MessageRole.USER ? 'user' : 'model' as any,
+              parts: parts
+            };
           });
-          botResponseText = response.text || "I'm sorry, I couldn't generate a response.";
+
+          const currentParts: any[] = [];
+          if (messageContent) currentParts.push({ text: messageContent });
+          else if (!imageToUpload) currentParts.push({ text: " " });
+          
+          if (imageToUpload && imageToUpload.startsWith('data:')) {
+            const mimeType = imageToUpload.split(';')[0].split(':')[1];
+            const data = imageToUpload.split(',')[1];
+            if (!messageContent) currentParts.unshift({ text: "Analyze this image" });
+            currentParts.push({ inlineData: { mimeType, data } });
+          }
+
+          const response = await fetch("/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ history, currentParts }),
+          });
+          
+          if (!response.ok) {
+            throw new Error(await response.text());
+          }
+
+          const data = await response.json();
+          botResponseText = data.text || "I'm sorry, I couldn't generate a response.";
         }
       } catch (geminiError) {
         console.error("Gemini API Error:", geminiError);

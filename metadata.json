@@ -1,6 +1,6 @@
 {
-  "name": "NeuroChat",
-  "description": "A modern AI chatbot with futuristic glassmorphism UI, real-time message history, and intelligent assistance powered by Gemini.",
+  "name": "Neuro Chat AI",
+  "description": "A premium, futuristic AI assistant with smooth glassmorphism, real-time collaboration, and intelligence powered by Neuro AI.",
   "requestFramePermissions": [],
-  "majorCapabilities": []
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -40,14 +40,14 @@ export default function Sidebar({
     <motion.aside
       initial={false}
       animate={{ width: isOpen ? 320 : 0, opacity: isOpen ? 1 : 0 }}
-      className="bg-[#0f172a] border-r border-white/5 flex flex-col h-screen overflow-hidden z-20 absolute lg:relative"
+      className="bg-[#0A0A0A] border-r border-white/5 flex flex-col h-screen overflow-hidden z-20 absolute lg:relative shadow-2xl"
     >
       <div className="p-4 flex items-center gap-3 border-b border-white/5">
         <div className="p-2 bg-gradient-to-br from-neon-purple to-neon-blue rounded-lg">
           <BrainCircuit size={24} className="text-white" />
         </div>
         <span className="font-bold text-xl bg-gradient-to-r from-neon-purple to-neon-blue bg-clip-text text-transparent">
-          NeuroChat
+          Neuro AI
         </span>
       </div>
 
@@ -97,10 +97,13 @@ export default function Sidebar({
 
       <div className="p-4 border-t border-white/5">
         <div className="flex items-center gap-3 mb-4 px-2">
-          <img src={user.photoURL || ''} alt="" className="w-8 h-8 rounded-lg border border-white/10" />
+          <div className="relative">
+            <img src={user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}&background=7B61FF&color=fff`} alt="" className="w-9 h-9 rounded-xl border border-white/10" />
+            <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-[#0A0A0A] rounded-full" />
+          </div>
           <div className="flex-1 overflow-hidden">
-            <p className="text-sm font-medium truncate">{user.displayName}</p>
-            <p className="text-xs text-slate-500 truncate">{user.email}</p>
+            <p className="text-sm font-bold truncate text-white">{user.displayName || 'User'}</p>
+            <p className="text-[10px] text-slate-500 truncate uppercase tracking-widest font-semibold">{user.email}</p>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-2">
