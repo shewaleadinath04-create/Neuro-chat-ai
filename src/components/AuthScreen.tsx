@@ -5,13 +5,11 @@ import {
   Mail, 
   Lock, 
   User as UserIcon, 
-  LogIn, 
   ArrowRight, 
   Eye, 
   EyeOff, 
   Loader2, 
-  ChevronLeft,
-  Github
+  ChevronLeft
 } from 'lucide-react';
 import { 
   signInWithGoogle, 
@@ -21,7 +19,6 @@ import {
 } from '../lib/firebase';
 
 enum AuthView {
-  SPLASH = 'splash',
   WELCOME = 'welcome',
   LOGIN = 'login',
   SIGNUP = 'signup',
@@ -29,7 +26,7 @@ enum AuthView {
 }
 
 export default function AuthScreen() {
-  const [view, setView] = useState<AuthView>(AuthView.SPLASH);
+  const [view, setView] = useState<AuthView>(AuthView.WELCOME);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -37,25 +34,6 @@ export default function AuthScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [typingText, setTypingText] = useState('');
-  
-  const fullText = "Hello, how can I help you today?";
-  
-  // Splash screen fake typing effect
-  useEffect(() => {
-    if (view === AuthView.SPLASH) {
-      let i = 0;
-      const interval = setInterval(() => {
-        setTypingText(fullText.slice(0, i));
-        i++;
-        if (i > fullText.length) {
-          clearInterval(interval);
-          setTimeout(() => setView(AuthView.WELCOME), 2000);
-        }
-      }, 70);
-      return () => clearInterval(interval);
-    }
-  }, [view]);
 
   const handleAuthError = (err: any) => {
     console.error(err);
@@ -120,330 +98,230 @@ export default function AuthScreen() {
     }
   };
 
-  const BackgroundParticles = () => (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {[...Array(20)].map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute w-1 h-1 bg-white rounded-full opacity-20"
-          initial={{ 
-            x: Math.random() * 100 + "%", 
-            y: Math.random() * 100 + "%",
-            scale: Math.random() * 2
-          }}
-          animate={{ 
-            y: [Math.random() * 100 + "%", Math.random() * 100 + "%"],
-            opacity: [0.1, 0.4, 0.1]
-          }}
-          transition={{ 
-            duration: 10 + Math.random() * 20, 
-            repeat: Infinity,
-            ease: "linear" 
-          }}
-        />
-      ))}
-    </div>
-  );
-
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
-      <BackgroundParticles />
+    <div className="min-h-[100dvh] bg-[#F4F4EC] flex flex-col items-center relative overflow-hidden font-sans selection:bg-[#0047FF]/20 selection:text-[#0047FF]">
       
-      {/* Soft Glows */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#7B61FF]/10 blur-[120px] rounded-full" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#4DA8FF]/10 blur-[120px] rounded-full" />
+      {/* Top half with floating logo */}
+      <div className="flex-1 flex flex-col items-center justify-center w-full relative z-0">
+        <motion.div
+          animate={{ y: [-8, 8, -8] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          className="relative"
+        >
+          {/* Subtle glow behind logo */}
+          <div className="absolute inset-0 bg-[#0047FF]/20 blur-[40px] rounded-full scale-150" />
+          
+          <div className="w-20 h-20 bg-[#0A0A0A] rounded-[1.5rem] flex items-center justify-center shadow-2xl relative z-10 border border-white/10 overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-tr from-[#0047FF]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <BrainCircuit size={36} className="text-white/90" strokeWidth={1.5} />
+          </div>
+        </motion.div>
+      </div>
 
-      <AnimatePresence mode="wait">
-        {view === AuthView.SPLASH && (
-          <motion.div
-            key="splash"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="flex flex-col items-center z-10"
-          >
-            <motion.div
-              animate={{ 
-                scale: [1, 1.05, 1],
-                filter: ["drop-shadow(0 0 0px #7B61FF)", "drop-shadow(0 0 20px #7B61FF)", "drop-shadow(0 0 0px #7B61FF)"]
-              }}
-              transition={{ duration: 3, repeat: Infinity }}
-              className="p-6 bg-gradient-to-br from-[#7B61FF] to-[#4DA8FF] rounded-[2.5rem] shadow-2xl mb-8"
+      {/* Bottom Sheet Container */}
+      <div className="w-full sm:max-w-md flex flex-col justify-end z-10">
+        <motion.div
+          initial={{ y: "100%" }}
+          animate={{ y: 0 }}
+          transition={{ type: "spring", damping: 28, stiffness: 200 }}
+          className="w-full bg-[#0A0A0A] rounded-t-[2.5rem] p-8 pb-12 shadow-[0_-20px_60px_-15px_rgba(0,0,0,0.1)] relative"
+        >
+          {error && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="absolute top-0 left-8 right-8 -mt-6 p-3 bg-red-500/90 text-white rounded-xl shadow-lg text-sm text-center font-medium"
             >
-              <BrainCircuit size={80} className="text-white" />
+              {error}
             </motion.div>
-            
-            <h1 className="text-5xl font-bold tracking-tight mb-4 bg-gradient-to-r from-white via-white/80 to-white/40 bg-clip-text text-transparent">
-              Neuro Chat AI
-            </h1>
-            
-            <p className="text-[#4DA8FF] font-medium tracking-[0.2em] uppercase text-sm mb-12">
-              Your Personal AI Assistant
-            </p>
+          )}
 
-            <div className="flex flex-col items-center gap-6">
-              <div className="min-h-[1.5rem] font-mono text-slate-400">
-                {typingText}<span className="animate-pulse">|</span>
-              </div>
-              
+          <AnimatePresence mode="wait">
+            {view === AuthView.WELCOME ? (
               <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: 200 }}
-                className="h-[2px] bg-white/10 relative overflow-hidden"
+                key="welcome"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ duration: 0.2 }}
+                className="flex flex-col w-full"
               >
-                <motion.div 
-                  animate={{ x: [-200, 200] }}
-                  transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute h-full w-[100px] bg-gradient-to-r from-transparent via-[#7B61FF] to-transparent"
-                />
-              </motion.div>
-            </div>
-          </motion.div>
-        )}
-
-        {view === AuthView.WELCOME && (
-          <motion.div
-            key="welcome"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -30 }}
-            className="w-full max-w-md flex flex-col items-center z-10"
-          >
-            <div className="relative mb-12">
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                className="absolute inset-[-20px] border border-white/5 rounded-full"
-              />
-              <motion.div
-                animate={{ rotate: -360 }}
-                transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-                className="absolute inset-[-40px] border border-white/5 rounded-full"
-              />
-              <div className="relative p-8 bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[3rem] shadow-2xl">
-                <BrainCircuit size={64} className="text-[#7B61FF]" />
-              </div>
-            </div>
-
-            <h2 className="text-4xl font-bold mb-4 text-center">Welcome to Neuro AI</h2>
-            <p className="text-slate-400 text-center mb-12 max-w-[280px]">
-              Unlock the power of next-gen artificial intelligence and seamless collaboration.
-            </p>
-
-            <div className="w-full space-y-4">
-              <button
-                onClick={onGoogleSignIn}
-                className="w-full flex items-center justify-center gap-3 bg-white text-black font-bold py-4 px-6 rounded-2xl hover:bg-slate-200 transition-all hover:scale-[1.02] shadow-xl group"
-              >
-                <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
-                Continue with Google
-              </button>
-              
-              <button
-                onClick={() => setView(AuthView.LOGIN)}
-                className="w-full flex items-center justify-center gap-3 bg-white/5 backdrop-blur-xl border border-white/10 text-white font-bold py-4 px-6 rounded-2xl hover:bg-white/10 transition-all hover:scale-[1.02]"
-              >
-                <Mail size={20} className="text-[#4DA8FF]" />
-                Continue with Email
-              </button>
-
-              <button
-                onClick={() => setView(AuthView.SIGNUP)}
-                className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-[#7B61FF] to-[#4DA8FF] text-white font-bold py-4 px-6 rounded-2xl shadow-lg hover:opacity-90 transition-all hover:scale-[1.02]"
-              >
-                Sign Up Now
-                <ArrowRight size={20} />
-              </button>
-            </div>
-
-            <p className="mt-8 text-slate-500 font-medium">
-              Already have an account?{" "}
-              <button onClick={() => setView(AuthView.LOGIN)} className="text-[#7B61FF] hover:underline">
-                Login
-              </button>
-            </p>
-          </motion.div>
-        )}
-
-        {(view === AuthView.LOGIN || view === AuthView.SIGNUP || view === AuthView.FORGOT_PASSWORD) && (
-          <motion.div
-            key="auth-form"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="w-full max-w-md z-10"
-          >
-            <div className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden">
-              <button 
-                onClick={() => setView(AuthView.WELCOME)}
-                className="absolute top-6 left-6 text-slate-400 hover:text-white transition-colors"
-              >
-                <ChevronLeft size={24} />
-              </button>
-
-              <div className="flex flex-col items-center mb-8">
-                <div className="p-3 bg-white/5 rounded-2xl mb-4 border border-white/10">
-                  <BrainCircuit size={32} className="text-[#7B61FF]" />
+                <div className="mb-8 mt-2">
+                  <h2 className="text-[26px] font-bold text-white tracking-tight mb-2">Welcome</h2>
+                  <p className="text-white/50 text-[15px]">Experience the future of personal assistance.</p>
                 </div>
-                <h3 className="text-2xl font-bold">
-                  {view === AuthView.LOGIN ? 'Welcome Back' : 
-                   view === AuthView.SIGNUP ? 'Create Account' : 
-                   'Reset Password'}
-                </h3>
-                <p className="text-slate-400 text-sm mt-1">
-                  {view === AuthView.LOGIN ? 'Sign in to continue to Neuro AI' : 
-                   view === AuthView.SIGNUP ? 'Join the futuristic AI revolution today' : 
-                   'Enter your email to reset password'}
+
+                <div className="space-y-4">
+                  <button
+                    onClick={onGoogleSignIn}
+                    disabled={loading}
+                    className="w-full bg-white text-black rounded-full py-2.5 px-3 flex items-center justify-between hover:bg-gray-100 transition-transform active:scale-[0.98] shadow-lg disabled:opacity-70 disabled:cursor-not-allowed group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center border border-gray-100 shadow-sm">
+                        {loading ? <Loader2 className="animate-spin text-gray-400" size={18} /> : <img src="https://www.google.com/favicon.ico" alt="Google" className="w-[18px] h-[18px]" />}
+                      </div>
+                      <span className="font-semibold text-[15px] tracking-tight">Continue with Google</span>
+                    </div>
+                    <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center border border-gray-100 group-hover:bg-gray-100 transition-colors">
+                      <UserIcon size={16} className="text-gray-400" />
+                    </div>
+                  </button>
+
+                  <div className="flex items-center gap-4 my-6">
+                    <div className="h-[1px] flex-1 bg-white/10" />
+                    <span className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-semibold">Or</span>
+                    <div className="h-[1px] flex-1 bg-white/10" />
+                  </div>
+
+                  <button
+                    onClick={() => setView(AuthView.LOGIN)}
+                    className="w-full bg-[#1A1A1A] border border-white/5 text-white/90 rounded-full py-4 text-[15px] font-semibold hover:bg-white/5 transition-transform active:scale-[0.98]"
+                  >
+                    Log in or sign up
+                  </button>
+                </div>
+
+                <p className="mt-8 text-[11px] text-center text-white/40 leading-relaxed font-medium">
+                  By continuing, you agree to our<br />
+                  <a href="#" className="underline hover:text-white transition-colors">Terms of Service</a> and <a href="#" className="underline hover:text-white transition-colors">Privacy Policy</a>
                 </p>
-              </div>
-
-              {error && (
-                <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm text-center">
-                  {error}
+              </motion.div>
+            ) : (
+              <motion.div
+                key="form"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
+                className="flex flex-col w-full"
+              >
+                <div className="flex items-center mb-8 mt-2">
+                  <button 
+                    onClick={() => setView(AuthView.WELCOME)}
+                    className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-colors mr-4"
+                  >
+                    <ChevronLeft size={18} />
+                  </button>
+                  <div>
+                    <h2 className="text-xl font-bold text-white tracking-tight">
+                      {view === AuthView.LOGIN ? 'Log in' : 
+                       view === AuthView.SIGNUP ? 'Create account' : 
+                       'Reset password'}
+                    </h2>
+                  </div>
                 </div>
-              )}
 
-              <form onSubmit={view === AuthView.LOGIN ? onLogin : view === AuthView.SIGNUP ? onSignUp : onResetPassword} className="space-y-4">
-                {view === AuthView.SIGNUP && (
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest ml-1">Full Name</label>
+                <form onSubmit={view === AuthView.LOGIN ? onLogin : view === AuthView.SIGNUP ? onSignUp : onResetPassword} className="space-y-3">
+                  {view === AuthView.SIGNUP && (
                     <div className="relative">
-                      <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                      <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" size={18} />
                       <input
                         type="text"
                         required
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        placeholder="John Doe"
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 outline-none focus:border-[#7B61FF]/50 focus:bg-white/10 transition-all placeholder:text-slate-600"
+                        placeholder="Full Name"
+                        className="w-full bg-[#1A1A1A] text-white rounded-2xl py-4 pl-11 pr-4 outline-none border border-transparent focus:border-[#0047FF]/50 focus:bg-[#222] transition-colors placeholder:text-white/30 text-[15px]"
                       />
                     </div>
-                  </div>
-                )}
-                
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest ml-1">Email Address</label>
+                  )}
+                  
                   <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" size={18} />
                     <input
                       type="email"
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="name@example.com"
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 outline-none focus:border-[#7B61FF]/50 focus:bg-white/10 transition-all placeholder:text-slate-600"
+                      placeholder="Email address"
+                      className="w-full bg-[#1A1A1A] text-white rounded-2xl py-4 pl-11 pr-4 outline-none border border-transparent focus:border-[#0047FF]/50 focus:bg-[#222] transition-colors placeholder:text-white/30 text-[15px]"
                     />
                   </div>
-                </div>
 
-                {view !== AuthView.FORGOT_PASSWORD && (
-                  <>
-                    <div className="space-y-1.5">
-                      <div className="flex justify-between items-center px-1">
-                        <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Password</label>
-                        {view === AuthView.LOGIN && (
-                          <button 
-                            type="button" 
-                            onClick={() => setView(AuthView.FORGOT_PASSWORD)}
-                            className="text-[10px] text-[#7B61FF] font-bold hover:underline"
-                          >
-                            Forgot Password?
-                          </button>
-                        )}
-                      </div>
+                  {view !== AuthView.FORGOT_PASSWORD && (
+                    <>
                       <div className="relative">
-                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" size={18} />
                         <input
                           type={showPassword ? "text" : "password"}
                           required
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
-                          placeholder="••••••••"
-                          className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-12 outline-none focus:border-[#7B61FF]/50 focus:bg-white/10 transition-all placeholder:text-slate-600"
+                          placeholder="Password"
+                          className="w-full bg-[#1A1A1A] text-white rounded-2xl py-4 pl-11 pr-11 outline-none border border-transparent focus:border-[#0047FF]/50 focus:bg-[#222] transition-colors placeholder:text-white/30 text-[15px]"
                         />
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition-colors"
                         >
                           {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                         </button>
                       </div>
-                    </div>
 
-                    {view === AuthView.SIGNUP && (
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest ml-1">Confirm Password</label>
+                      {view === AuthView.SIGNUP && (
                         <div className="relative">
-                          <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                          <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" size={18} />
                           <input
                             type={showPassword ? "text" : "password"}
                             required
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
-                            placeholder="••••••••"
-                            className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 outline-none focus:border-[#7B61FF]/50 focus:bg-white/10 transition-all placeholder:text-slate-600"
+                            placeholder="Confirm Password"
+                            className="w-full bg-[#1A1A1A] text-white rounded-2xl py-4 pl-11 pr-11 outline-none border border-transparent focus:border-[#0047FF]/50 focus:bg-[#222] transition-colors placeholder:text-white/30 text-[15px]"
                           />
                         </div>
-                      </div>
-                    )}
-                  </>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-gradient-to-r from-[#7B61FF] to-[#4DA8FF] text-white font-bold py-4 rounded-2xl shadow-xl hover:opacity-90 disabled:opacity-50 transition-all active:scale-[0.98] flex items-center justify-center gap-2 mt-4"
-                >
-                  {loading ? <Loader2 className="animate-spin" size={20} /> : (
-                    <>
-                      {view === AuthView.LOGIN ? 'Login Account' : 
-                       view === AuthView.SIGNUP ? 'Create Free Account' : 
-                       'Send Reset Link'}
-                      <ArrowRight size={20} />
+                      )}
                     </>
                   )}
-                </button>
-              </form>
 
-              <div className="mt-8 flex flex-col items-center gap-4">
-                <div className="flex items-center gap-4 w-full">
-                  <div className="h-[1px] bg-white/10 flex-1" />
-                  <span className="text-[10px] text-slate-600 uppercase font-bold tracking-widest">Or Continue with</span>
-                  <div className="h-[1px] bg-white/10 flex-1" />
-                </div>
+                  {view === AuthView.LOGIN && (
+                    <div className="flex justify-end pt-1">
+                      <button 
+                        type="button" 
+                        onClick={() => setView(AuthView.FORGOT_PASSWORD)}
+                        className="text-[12px] text-white/50 hover:text-white transition-colors font-medium"
+                      >
+                        Forgot Password?
+                      </button>
+                    </div>
+                  )}
 
-                <div className="flex gap-4 w-full">
-                  <button onClick={onGoogleSignIn} className="flex-1 flex items-center justify-center p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-colors group">
-                    <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
-                  </button>
-                  <button className="flex-1 flex items-center justify-center p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-colors group">
-                    <Github size={20} className="text-slate-400 group-hover:text-white transition-colors" />
-                  </button>
-                </div>
-
-                <p className="text-sm text-slate-400 mt-4">
-                  {view === AuthView.LOGIN ? "Don't have an account?" : "Already have an account?"}
-                  {" "}
-                  <button 
-                    onClick={() => setView(view === AuthView.LOGIN ? AuthView.SIGNUP : AuthView.LOGIN)}
-                    className="text-[#7B61FF] font-bold hover:underline ml-1"
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-white text-black font-semibold py-4 rounded-2xl shadow-lg hover:bg-gray-100 disabled:opacity-50 transition-transform active:scale-[0.98] flex items-center justify-center gap-2 mt-2 text-[15px]"
                   >
-                    {view === AuthView.LOGIN ? 'Sign Up' : 'Login'}
+                    {loading ? <Loader2 className="animate-spin" size={18} /> : (
+                      <>
+                        {view === AuthView.LOGIN ? 'Log in' : 
+                         view === AuthView.SIGNUP ? 'Create account' : 
+                         'Send reset link'}
+                        <ArrowRight size={18} />
+                      </>
+                    )}
                   </button>
-                </p>
-              </div>
+                </form>
 
-              {view === AuthView.SIGNUP && (
-                <p className="mt-8 text-[10px] text-center text-slate-600 uppercase tracking-[0.1em] leading-relaxed">
-                  By creating an account, you agree to our<br/>
-                  <span className="text-slate-500 font-bold hover:text-slate-400 cursor-pointer">Terms of Service</span> and <span className="text-slate-500 font-bold hover:text-slate-400 cursor-pointer">Privacy Policy</span>
-                </p>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                <div className="mt-8 text-center">
+                  <p className="text-[13px] text-white/40">
+                    {view === AuthView.LOGIN ? "Don't have an account?" : "Already have an account?"}
+                    {" "}
+                    <button 
+                      onClick={() => setView(view === AuthView.LOGIN ? AuthView.SIGNUP : AuthView.LOGIN)}
+                      className="text-white font-semibold hover:underline"
+                    >
+                      {view === AuthView.LOGIN ? 'Sign up' : 'Log in'}
+                    </button>
+                  </p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      </div>
     </div>
   );
 }
+
